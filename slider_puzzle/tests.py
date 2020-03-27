@@ -7,5 +7,5 @@ import random
 
 class PlayerBot(Bot):
     def play_round(self):
-        yield pages.Game, {'puzzle_solved': random.choice([True, False])}
+        yield pages.Game, {'puzzle_solved': random.choice([True, False]), 'move_history': 'bot got no moves'}
         yield pages.Results

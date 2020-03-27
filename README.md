@@ -7,6 +7,8 @@ This app implements a simple 3x3 slider puzzle as a two player cooperative game.
 
 Interaction takes place in real time. See the installation section below on how to set the app up correctly.
 
+Moves are stored (in a very crude fashion).
+
 ## Demo
 A [simple demo](https://otree-slider-puzzle.herokuapp.com) is included with the project.
 

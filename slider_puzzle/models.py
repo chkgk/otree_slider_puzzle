@@ -34,6 +34,7 @@ class Subsession(BaseSubsession):
 class Group(BaseGroup):
     puzzle_solved = models.BooleanField(initial=False)
     starting_player = models.IntegerField()
+    move_history = models.LongStringField()
 
     def set_starting_player(self):
         self.starting_player = random.choice([player.id_in_group for player in self.get_players()])

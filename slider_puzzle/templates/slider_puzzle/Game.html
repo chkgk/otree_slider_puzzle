@@ -69,7 +69,10 @@
 
          <p id="message"></p>
 
-        <input type="hidden" name="puzzle_solved" id="id_puzzle_solved" value="False">
+        {% if player.id_in_group == 1 %}
+            <input type="hidden" name="puzzle_solved" id="id_puzzle_solved" value="False">
+            <input type="hidden" name="move_history" id="id_move_history">
+        {% endif %}
 
         {% next_button %}
     </div>
@@ -242,6 +245,10 @@
                 green_message('Your move!');
                 sg.enabled = true;
                 sg.move(data.text.from, external=true);
+                if (fill_form) {
+                    history.push(data.text);
+                    $('#id_move_history').val(JSON.stringify(history));
+                }
             }
         };
 
@@ -277,14 +284,20 @@
         // Game
         let board = js_vars.board;
         let sg = new SlidePuzzle('sgame_table', board);
+        let fill_form = js_vars.first_player;
+        let history = [];
 
         sg.table.addEventListener('move', function (e) {
             send(e.type, e.detail);
+            history.push(e.detail);
+            $('#id_move_history').val(JSON.stringify(history));
             orange_message('Wait for the other player!');
         }, false);
 
         sg.table.addEventListener('solved', function () {
-            $('#id_puzzle_solved').val('True');
+            if (fill_form) {
+                $('#id_puzzle_solved').val('True');
+            }
             $('.otree-btn-next').show();
             green_message("You have solved the puzzle!");
         }, false);
