@@ -26,8 +26,11 @@ class Game(Page):
             'first_player': self.player.id_in_group == 1
         }
 
+class WaitBeforeResults(WaitPage):
+    pass
+
 class Results(Page):
     pass
 
 
-page_sequence = [Game, Results]
+page_sequence = [Game, WaitBeforeResults, Results]
