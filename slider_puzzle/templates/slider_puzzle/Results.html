@@ -1,0 +1,21 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Results
+{% endblock %}
+
+{% block content %}
+
+    <p>
+    {% if group.puzzle_solved %}
+        Congratulations! You solved the puzzle in time.
+    {% else %}
+        Too bad. You did not solve the puzzle in time.
+    {% endif %}
+    </p>
+
+    {% next_button %}
+{% endblock %}
+
+
