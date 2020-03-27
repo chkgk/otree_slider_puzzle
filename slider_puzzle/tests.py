@@ -7,5 +7,8 @@ import random
 
 class PlayerBot(Bot):
     def play_round(self):
-        yield pages.Game, {'puzzle_solved': random.choice([True, False]), 'move_history': 'bot got no moves'}
+        if self.player.id_in_group == 1:
+            yield pages.Game, {'puzzle_solved': random.choice([True, False]), 'move_history': 'bot got no moves'}
+        else:
+            yield pages.Game
         yield pages.Results
