@@ -1,0 +1,279 @@
+{% extends "global/Page.html" %}
+{% load otree static %}
+
+{% block title %}
+    Slider Puzzle
+{% endblock %}
+
+{% block styles %}
+    <style type="text/css">
+        table.slider_game {
+            width: 300px;
+            height: 300px;
+            text-align: center;
+            background-color: #000;
+            font-size: 2em;
+            border-collapse: unset;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .slider_game td {
+            width: 100px;
+            height: 100px;
+        }
+
+        .full {
+            background-color: #ccc;
+            cursor: pointer;
+        }
+
+        .empty {
+            background-color: #fff;
+        }
+
+        .vspace {
+            margin-top: 1em;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        #message {
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .green {
+            color: forestgreen;
+        }
+
+        .orange {
+            color: orangered;
+        }
+
+    </style>
+{% endblock %}
+
+{% block content %}
+
+    <div class="center vspace">
+        <p>
+            Solve puzzles until the time runs out.
+        </p>
+
+        <table class="slider_game" id="sgame_table"></table>
+
+         <p id="message"></p>
+
+    </div>
+
+
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript">
+        class SlidePuzzle {
+            constructor(table_id, board) {
+                this.table = document.getElementById(table_id);
+                this.board = board;
+                this.enabled = true;
+                this.draw();
+            }
+
+            set_board(board) {
+                this.board = board;
+                this.enabled = true;
+                this.draw();
+            }
+
+            get_empty_field() {
+                for (let row = 0; row < this.board.length; row++) {
+                    for (let col = 0; col < this.board[row].length; col++) {
+                        if (this.board[row][col] === null) {
+                            return [row, col];
+                        }
+                    }
+                }
+            }
+
+            get_movable_blocks() {
+                let pos_empty_field = this.get_empty_field();
+                let empty_row = pos_empty_field[0];
+                let empty_col = pos_empty_field[1];
+
+                // naive definition of row and col candidates
+                let candidate_rows = [empty_row - 1, empty_row + 1];
+                let candidate_cols = [empty_col - 1, empty_col + 1];
+
+                let rows = [];
+                let cols = [];
+
+                // remove candidates outside of board
+                for (let c_row = 0; c_row < candidate_rows.length; c_row++) {
+                    if (candidate_rows[c_row] >= 0 && candidate_rows[c_row] < this.board.length) {
+                        rows.push(candidate_rows[c_row]);
+                    }
+                }
+
+                for (let c_col = 0; c_col < candidate_cols.length; c_col++) {
+                    if (candidate_cols[c_col] >= 0 && candidate_cols[c_col] < this.board[0].length) { // assumes symmetric, min 1x1 board
+                        cols.push(candidate_cols[c_col]);
+                    }
+                }
+
+                // combine candidates with empty columns
+                let block_pos = [];
+                for (let i = 0; i < rows.length; i++) {
+                    block_pos.push([rows[i], empty_col]);
+                }
+
+                for (let j = 0; j < cols.length; j++) {
+                    block_pos.push([empty_row, cols[j]]);
+                }
+
+                return block_pos;
+            }
+
+            searchForArray(haystack, needle){
+                var i, j, current;
+                for(i = 0; i < haystack.length; ++i){
+                    if(needle.length === haystack[i].length){
+                        current = haystack[i];
+                        for(j = 0; j < needle.length && needle[j] === current[j]; ++j);
+                            if(j === needle.length)
+                                return i;
+                        }
+                    }
+                return -1;
+            }
+
+            move(pos, external=false) {
+                if (!this.enabled) {
+                    return false;
+                }
+                if (this.searchForArray(this.get_movable_blocks(this.board), pos) === -1) {
+                    return false;
+                }
+                let empty = this.get_empty_field(this.board);
+                this.board[empty[0]][empty[1]] = this.board[pos[0]][pos[1]];
+                this.board[pos[0]][pos[1]] = null;
+                this.draw();
+                if (!external) {
+                    let move_event = new CustomEvent('move', { detail: { from: pos, to: empty } });
+                    this.table.dispatchEvent(move_event);
+                }
+
+                if (this.solved()) {
+                    this.enabled = false;
+                }
+                return true;
+            }
+
+            clear() {
+                const l = this.table.rows.length;
+                for (let r = 0; r < l; r++) {
+                    this.table.deleteRow(-1);
+                }
+            }
+
+            draw() {
+                this.clear();
+                for (let r = 0; r < this.board.length; r++) {
+                    let row = this.table.insertRow(-1);
+                    for (let c = 0; c < this.board[0].length; c++) {
+                        let cell = row.insertCell(-1);
+                        let value;
+                        if (this.board[r][c] == null) {
+                            value = "";
+                            cell.classList.add('empty');
+                        } else {
+                            value = this.board[r][c];
+                            cell.classList.add('full');
+                        }
+                        cell.setAttribute('onclick', "sg.move(["+r+","+c+"])");
+                        cell.innerHTML = value;
+                    }
+                }
+            }
+
+            solved() {
+                let rows = this.board.length;
+                let cols = this.board[0].length;
+
+                if (this.board[rows - 1][cols - 1] != null) {
+                    return false
+                }
+
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (this.board[r][c] !== (r * this.board[0].length) + (c+1)) {
+                            if (r !== rows - 1 && c !== cols - 1) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                let solved_event = new Event('solved');
+                this.table.dispatchEvent(solved_event);
+                return true;
+            }
+        }
+
+
+        function green_message(msg) {
+            let m = $('#message');
+            m.removeClass('orange');
+            m.addClass('green');
+            m.text(msg);
+        }
+
+        function orange_message(msg) {
+            let m = $('#message');
+            m.removeClass('green');
+            m.addClass('orange');
+            m.text(msg);
+        }
+
+        // Game
+        // Define a list of boards to be played one after the other.
+        // Make sure these can be solved!
+        // You could also come up with a function that generates solvable boards...
+        let boards = [[
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, null, 8]
+            ], [
+                [1, 2, 3],
+                [4, 5, null],
+                [7, 8, 6]
+            ], [
+                [1, 2, null],
+                [4, 5, 3],
+                [7, 8, 6]
+            ]
+        ];
+
+        let current_board = 0;
+        // initialize the game with the first board from the list.
+        let sg = new SlidePuzzle('sgame_table', boards[current_board]);
+
+        sg.table.addEventListener('solved', function () {
+            green_message("You have solved the puzzle!");
+            window.setTimeout(function() {
+                // if it was solved, we clear the board, take the next board and reset the game
+                if (current_board + 1 < boards.length) {
+                    current_board +=1;
+                    sg.clear();
+                    sg.set_board(boards[current_board]);
+                    green_message("");
+                } else {
+                    orange_message("You have solved all available puzzles! ");
+                }
+            }, 2000);
+        }, false);
+
+
+    </script>
+{% endblock %}

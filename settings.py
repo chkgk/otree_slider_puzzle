@@ -16,6 +16,12 @@ SESSION_CONFIGS = [
        num_demo_participants=4,
        app_sequence=['slider_puzzle']
     ),
+    dict(
+        name='single_player_puzzle',
+        display_name="Slider Puzzle - Single Player variant w/o move tracking",
+        num_demo_participants=2,
+        app_sequence=['single_player_puzzle']
+    )
 ]
 
 
