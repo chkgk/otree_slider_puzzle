@@ -12,7 +12,7 @@ SESSION_CONFIG_DEFAULTS = dict(
 SESSION_CONFIGS = [
     dict(
        name='slider_puzzle',
-       display_name="Slider Puzzle",
+       display_name="Slider Puzzle - Two Player real time variant w/ move tracking",
        num_demo_participants=4,
        app_sequence=['slider_puzzle']
     ),
