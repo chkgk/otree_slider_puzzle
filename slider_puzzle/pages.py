@@ -4,14 +4,10 @@ from .models import Constants
 
 
 class Game(Page):
-    form_model = 'group'
-    timeout_seconds = 600
+    form_model = 'player'
+    form_fields = ['puzzle_solved', 'move_history']
 
-    def get_form_fields(self):
-        if self.player.id_in_group == 1:
-            return ['puzzle_solved', 'move_history']
-        else:
-            return []
+    timeout_seconds = 600
 
     def js_vars(self):
         return {
@@ -27,7 +23,22 @@ class Game(Page):
         }
 
 class WaitBeforeResults(WaitPage):
-    pass
+    def after_all_players_arrive(self):
+        p1 = self.group.get_player_by_id(1)
+        p2 = self.group.get_player_by_id(2)
+
+        if p1.move_history == p2.move_history:
+            self.group.move_history = p1.move_history
+            self.group.move_histories_disagree = False
+
+            if p1.puzzle_solved or p2.puzzle_solved:
+                self.group.puzzle_solved = True
+                p1.puzzle_solved = True
+                p2.puzzle_solved = True
+            else:
+                self.group.puzzle_solved = False
+        else:
+            self.group.move_histories_disagree = True
 
 class Results(Page):
     pass
