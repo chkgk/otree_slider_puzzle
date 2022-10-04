@@ -11,9 +11,6 @@ This app implements a simple 3x3 slider puzzle. There are two variants: A two pl
 
 In the two-player version, moves are stored (in a very crude fashion). This can be added to the single player variant as well.
 
-## Demo
-A [simple demo](https://otree-slider-puzzle.herokuapp.com) is included with the project.
-
 ## Installation
 1. Download or clone the project and copy the apps into your oTree project folder, next to your other app folders. 
 
